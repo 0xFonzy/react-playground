@@ -21,8 +21,8 @@ type Data = {
 function App() {
   console.log('App mounted');
   const [images, setImages] = useState<Data[] | null>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const loading = useRef(false);
+  const error = useRef<string | null>(null);
 
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -46,9 +46,9 @@ function App() {
 
     async function getImages(q: string): Promise<void> {
       console.log('set loading true...');
-      setLoading(true);
+      loading.current = true;
       console.log('set error null...');
-      setError(null);
+      error.current = null;
       try {
         console.log('fetch api data');
         const response = (await fetch(baseUrl + q, { signal }));
@@ -58,13 +58,13 @@ function App() {
         const result = (await response.json()).data as Data[];
         console.log('result: ', result);
         setImages(result);
-      } catch (error) {
-        if (error instanceof Error && error.name !== 'AbortError') {
-          setError(error.message);
+      } catch (err) {
+        if (err instanceof Error && err.name !== 'AbortError') {
+          error.current = err.message;
         }
       } finally {
         if (!signal.aborted) {
-          setLoading(false);
+          loading.current = false;
         }
       }
     }
@@ -81,13 +81,13 @@ function App() {
 
   }, [query]);
 
-  if (loading) return <div>Loading...</div>
+  if (loading.current) return <div>Loading...</div>
   if (!images) return <div>No images loaded!</div>
 
   return (
     <div>
       <input type='text' ref={inputRef} defaultValue={query} onChange={handleChange} placeholder='Search cards...' />
-      {!error &&
+      {!error.current &&
         <div className='grid'>
           {
             images.map(img => {
@@ -95,7 +95,7 @@ function App() {
             })
           }
         </div>}
-      {error && <div>Error: {error}</div>}
+      {error.current && <div>Error: {error.current}</div>}
     </div>
   );
 }

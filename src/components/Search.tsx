@@ -1,4 +1,4 @@
-import { ChangeEvent, useCallback, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import _debounce from 'lodash/debounce';
 import '../App.css';
 
@@ -22,6 +22,12 @@ export default function Search() {
   }
 
   const debouncedFetchImages = useCallback(_debounce(fetchImages, 500), []);
+
+  useEffect(() => {
+    return () => {
+      debouncedFetchImages.cancel();
+    }
+  }, [debouncedFetchImages]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>): void => {
     const { value } = event.target;
